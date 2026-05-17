@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.jms.seafoodai.mapper.UserMapper">
+
+    <!-- 이메일 중복 확인 -->
+    <select id="countByEmail" parameterType="String" resultType="int">
+        SELECT COUNT(*)
+        FROM tb_watch_user
+        WHERE email = #{email}
+    </select>
+
+    <!-- 신규 사용자 등록 -->
+    <insert id="insertUser" parameterType="com.jms.seafoodai.domain.User">
+        INSERT INTO tb_watch_user (email, password, user_name, role, phone, business_no)
+        VALUES (#{email}, #{password}, #{userName}, #{role}::user_role, #{phone}, #{businessNo})
+    </insert>
+
+</mapper>

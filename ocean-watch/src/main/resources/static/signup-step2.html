@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>회원가입 — OceanWatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --glass-bg:rgba(255,255,255,.08);--glass-border:rgba(255,255,255,.18);
+      --accent:#38d9f5;--text-main:#f0f4ff;--text-muted:rgba(240,244,255,.6);
+      --green:#2ECC71;--red:#E74C3C;
+    }
+    body{font-family:'Noto Sans KR',sans-serif;background:linear-gradient(135deg,#020b18,#041f3a 40%,#062e55 70%,#073b6e);min-height:100vh;color:var(--text-main);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px 40px}
+    body::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,#38d9f5,transparent);filter:blur(80px);opacity:.2;top:-150px;left:-150px;pointer-events:none}
+
+    .logo{font-size:1.4rem;font-weight:700;color:var(--accent);margin-bottom:6px}
+    .logo span{color:var(--text-main)}
+    .step-label{font-size:.8rem;color:var(--text-muted);margin-bottom:40px}
+
+    /* ── 세부 역할 선택 (유통업자용) ── */
+    #sub-role-section{width:100%;max-width:700px;text-align:center}
+    #sub-role-section h1{font-size:clamp(1.4rem,3.5vw,2rem);margin-bottom:10px}
+    #sub-role-section p{color:var(--text-muted);font-size:.9rem;margin-bottom:36px}
+    .sub-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+    .sub-card{
+      background:var(--glass-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+      border:1px solid var(--glass-border);border-radius:16px;
+      padding:28px 16px;cursor:pointer;transition:transform .25s,border-color .25s,box-shadow .25s;
+    }
+    .sub-card:hover{transform:translateY(-6px);border-color:var(--accent);box-shadow:0 12px 32px rgba(56,217,245,.2)}
+    .sub-card .icon{font-size:2.2rem;margin-bottom:12px}
+    .sub-card h3{font-size:1rem;margin-bottom:6px}
+    .sub-card p{font-size:.78rem;color:var(--text-muted);line-height:1.5}
+    .sub-card .badge{display:inline-block;margin-top:10px;padding:3px 12px;border-radius:50px;font-size:.72rem;font-weight:600;background:rgba(56,217,245,.12);color:var(--accent);border:1px solid rgba(56,217,245,.25)}
+
+    /* ── 가입 폼 ── */
+    #form-section{display:none;width:100%;max-width:460px}
+    .form-header{text-align:center;margin-bottom:28px}
+    .form-header h1{font-size:1.6rem;margin-bottom:6px}
+    .form-header .role-chip{display:inline-block;padding:4px 16px;border-radius:50px;font-size:.8rem;font-weight:600;background:rgba(56,217,245,.15);color:var(--accent);border:1px solid rgba(56,217,245,.3);margin-bottom:8px}
+    .glass-card{background:var(--glass-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--glass-border);border-radius:20px;padding:36px}
+
+    .form-group{margin-bottom:16px}
+    .form-group label{display:block;font-size:.82rem;color:var(--text-muted);margin-bottom:6px;font-weight:500}
+    .form-group input{
+      width:100%;padding:12px 16px;
+      background:rgba(255,255,255,.06);border:1px solid var(--glass-border);
+      border-radius:10px;color:var(--text-main);font-size:.95rem;
+      font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .2s;
+    }
+    .form-group input::placeholder{color:var(--text-muted)}
+    .form-group input:focus{border-color:var(--accent)}
+    .form-group input.valid{border-color:var(--green)}
+    .form-group input.invalid{border-color:var(--red)}
+    .hint{font-size:.78rem;margin-top:5px;min-height:16px}
+    .hint.ok{color:var(--green)}.hint.err{color:var(--red)}
+
+    .btn-submit{
+      width:100%;margin-top:8px;padding:14px;border-radius:10px;font-size:1rem;font-weight:700;
+      background:linear-gradient(135deg,var(--accent),#1a8fa5);color:#020b18;border:none;cursor:pointer;
+      font-family:'Noto Sans KR',sans-serif;transition:transform .2s,box-shadow .2s;
+    }
+    .btn-submit:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(56,217,245,.3)}
+    .btn-submit:disabled{opacity:.6;cursor:not-allowed;transform:none}
+
+    .back-btn{margin-top:20px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.88rem;font-family:'Noto Sans KR',sans-serif;display:block;text-align:center;width:100%}
+    .back-btn:hover{color:var(--text-main)}
+    .login-link{text-align:center;margin-top:16px;font-size:.84rem;color:var(--text-muted)}
+    .login-link a{color:var(--accent);text-decoration:none}
+    .login-link a:hover{text-decoration:underline}
+
+    @media(max-width:540px){.sub-grid{grid-template-columns:1fr}.glass-card{padding:24px 16px}}
+  </style>
+</head>
+<body>
+  <div class="logo">Ocean<span>Watch</span></div>
+  <div class="step-label" id="step-label">회원가입</div>
+
+  <!-- ── 유통업자 세부 역할 선택 ────────────────── -->
+  <div id="sub-role-section">
+    <h1>어떤 역할로 활동하시나요?</h1>
+    <p>유통 단계에서 담당하시는 역할을 선택해 주세요.</p>
+    <div class="sub-grid">
+      <div class="sub-card" data-role="PRODUCER">
+        <div class="icon">🎣</div>
+        <h3>생산자</h3>
+        <p>수산물을 직접 포획하거나 양식하는 어부 및 생산자</p>
+        <div class="badge">PRODUCER</div>
+      </div>
+      <div class="sub-card" data-role="WHOLESALER">
+        <div class="icon">🏭</div>
+        <h3>도매업자</h3>
+        <p>생산자로부터 대량 매입해 소매업자에게 공급하는 유통업자</p>
+        <div class="badge">WHOLESALER</div>
+      </div>
+      <div class="sub-card" data-role="RETAILER">
+        <div class="icon">🏪</div>
+        <h3>소매업자</h3>
+        <p>도매업자로부터 매입해 소비자에게 최종 판매하는 판매자</p>
+        <div class="badge">RETAILER</div>
+      </div>
+    </div>
+    <button class="back-btn" onclick="location.href='/signup-step1.html'">← 이전 단계로</button>
+  </div>
+
+  <!-- ── 가입 폼 ─────────────────────────────── -->
+  <div id="form-section">
+    <div class="form-header">
+      <div class="role-chip" id="role-chip"></div>
+      <h1>정보를 입력해 주세요</h1>
+    </div>
+    <div class="glass-card">
+      <form id="signup-form" novalidate>
+        <input type="hidden" id="selected-role"/>
+
+        <!-- 이메일 -->
+        <div class="form-group">
+          <label>이메일 *</label>
+          <input type="email" id="f-email" placeholder="user@example.com"/>
+          <div class="hint" id="hint-email"></div>
+        </div>
+        <!-- 이름 -->
+        <div class="form-group">
+          <label>이름 *</label>
+          <input type="text" id="f-name" placeholder="홍길동"/>
+        </div>
+        <!-- 전화번호 -->
+        <div class="form-group">
+          <label>전화번호 * (숫자만)</label>
+          <input type="tel" id="f-phone" placeholder="01012345678" maxlength="11"/>
+          <div class="hint" id="hint-phone"></div>
+        </div>
+        <!-- 비밀번호 -->
+        <div class="form-group">
+          <label>비밀번호 * (8자 이상)</label>
+          <input type="password" id="f-pw" placeholder="••••••••"/>
+        </div>
+        <!-- 비밀번호 확인 -->
+        <div class="form-group">
+          <label>비밀번호 확인 *</label>
+          <input type="password" id="f-pw2" placeholder="비밀번호를 다시 입력"/>
+          <div class="hint" id="hint-pw"></div>
+        </div>
+        <!-- 사업자번호 (유통업자만 표시) -->
+        <div class="form-group" id="biz-group" style="display:none">
+          <label>사업자등록번호 (선택)</label>
+          <input type="text" id="f-biz" placeholder="1234567890" maxlength="10"/>
+        </div>
+
+        <button type="submit" class="btn-submit" id="btn-submit">가입하기</button>
+      </form>
+    </div>
+    <button class="back-btn" id="form-back-btn">← 이전 단계로</button>
+    <div class="login-link">이미 계정이 있으신가요? <a href="/">로그인</a></div>
+  </div>
+
+  <script>
+    // ── URL 파라미터에서 role 읽기 ─────────────────
+    const params    = new URLSearchParams(location.search);
+    const roleParam = params.get('role'); // 'CONSUMER' | 'DISTRIBUTOR'
+
+    const subSection  = document.getElementById('sub-role-section');
+    const formSection = document.getElementById('form-section');
+    const stepLabel   = document.getElementById('step-label');
+    const roleChip    = document.getElementById('role-chip');
+    const selectedRoleInput = document.getElementById('selected-role');
+    const bizGroup    = document.getElementById('biz-group');
+
+    const ROLE_LABELS = {
+      CONSUMER:'소비자', PRODUCER:'생산자 (어부)',
+      WHOLESALER:'도매업자', RETAILER:'소매업자'
+    };
+
+    // ── 폼 표시 함수 ──────────────────────────────
+    function showForm(role) {
+      selectedRoleInput.value = role;
+      roleChip.textContent    = ROLE_LABELS[role] || role;
+      stepLabel.textContent   = `회원가입 2단계 / 정보 입력`;
+      subSection.style.display  = 'none';
+      formSection.style.display = 'block';
+      // 유통업자 그룹만 사업자번호 노출
+      bizGroup.style.display = (role !== 'CONSUMER') ? 'block' : 'none';
+      // 뒤로 버튼 동작 분기
+      document.getElementById('form-back-btn').onclick =
+        role === 'CONSUMER'
+          ? () => location.href = '/signup-step1.html'
+          : () => { formSection.style.display='none'; subSection.style.display='block'; };
+    }
+
+    // ── 진입 분기 ─────────────────────────────────
+    if (roleParam === 'CONSUMER') {
+      stepLabel.textContent = '회원가입 2단계 / 정보 입력';
+      showForm('CONSUMER');
+    } else if (roleParam === 'DISTRIBUTOR') {
+      stepLabel.textContent = '회원가입 2단계 / 세부 역할 선택';
+      // 세부 역할 카드 클릭
+      document.querySelectorAll('.sub-card').forEach(card => {
+        card.onclick = () => showForm(card.dataset.role);
+      });
+    } else {
+      // 잘못된 접근 → step1로 리다이렉트
+      location.href = '/signup-step1.html';
+    }
+
+    // ── 이메일 중복 체크 (300ms 디바운스) ────────
+    let emailTimer;
+    const emailEl   = document.getElementById('f-email');
+    const hintEmail = document.getElementById('hint-email');
+
+    emailEl.addEventListener('input', () => {
+      clearTimeout(emailTimer);
+      hintEmail.textContent = ''; hintEmail.className = 'hint'; emailEl.className = '';
+      const val = emailEl.value.trim();
+      if (!val || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return;
+      hintEmail.textContent = '확인 중...';
+      emailTimer = setTimeout(async () => {
+        try {
+          const res  = await fetch(`/api/v1/auth/check-email?email=${encodeURIComponent(val)}`);
+          const json = await res.json();
+          if (json.data?.isAvailable) {
+            hintEmail.textContent = '✓ 사용 가능한 이메일입니다.';
+            hintEmail.className   = 'hint ok'; emailEl.className = 'valid';
+          } else {
+            hintEmail.textContent = '✗ 이미 사용 중인 이메일입니다.';
+            hintEmail.className   = 'hint err'; emailEl.className = 'invalid';
+          }
+        } catch { hintEmail.textContent = '서버 연결 오류'; hintEmail.className = 'hint err'; }
+      }, 300);
+    });
+
+    // ── 비밀번호 실시간 일치 검사 ─────────────────
+    const pw1 = document.getElementById('f-pw');
+    const pw2 = document.getElementById('f-pw2');
+    const hintPw = document.getElementById('hint-pw');
+    const checkPw = () => {
+      if (!pw2.value) { hintPw.textContent = ''; pw2.className = ''; return; }
+      const match = pw1.value === pw2.value;
+      hintPw.textContent = match ? '✓ 비밀번호가 일치합니다.' : '✗ 비밀번호가 일치하지 않습니다.';
+      hintPw.className   = match ? 'hint ok' : 'hint err';
+      pw2.className      = match ? 'valid' : 'invalid';
+    };
+    pw1.addEventListener('input', checkPw);
+    pw2.addEventListener('input', checkPw);
+
+    // ── 전화번호 숫자 전용 ────────────────────────
+    const phoneEl   = document.getElementById('f-phone');
+    const hintPhone = document.getElementById('hint-phone');
+    phoneEl.addEventListener('input', () => {
+      phoneEl.value = phoneEl.value.replace(/\D/g, '');
+      const ok = /^[0-9]{10,11}$/.test(phoneEl.value);
+      hintPhone.textContent = phoneEl.value && !ok ? '✗ 10~11자리 숫자를 입력하세요.' : '';
+      hintPhone.className   = ok ? 'hint' : 'hint err';
+      phoneEl.className     = phoneEl.value ? (ok ? 'valid' : 'invalid') : '';
+    });
+
+    // ── 폼 제출 → POST /api/v1/auth/signup ────────
+    document.getElementById('signup-form').addEventListener('submit', async e => {
+      e.preventDefault();
+
+      const role      = selectedRoleInput.value;
+      const email     = emailEl.value.trim();
+      const userName  = document.getElementById('f-name').value.trim();
+      const phone     = phoneEl.value.trim();
+      const password  = pw1.value;
+      const password2 = pw2.value;
+      const businessNo = document.getElementById('f-biz').value.trim() || null;
+
+      if (!email || !userName || !phone || !password) { alert('필수 항목을 모두 입력해 주세요.'); return; }
+      if (password !== password2)   { alert('비밀번호가 일치하지 않습니다.'); return; }
+      if (password.length < 8)      { alert('비밀번호는 8자 이상이어야 합니다.'); return; }
+      if (emailEl.className === 'invalid') { alert('이미 사용 중인 이메일입니다.'); return; }
+
+      const btn = document.getElementById('btn-submit');
+      btn.disabled = true; btn.textContent = '처리 중...';
+
+      try {
+        const res  = await fetch('/api/v1/auth/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, userName, role, phone, businessNo })
+        });
+        const json = await res.json();
+        if (res.ok && json.code === 'SUCCESS') {
+          alert('✅ 회원가입이 완료되었습니다! 로그인해 주세요.');
+          location.href = '/';
+        } else {
+          alert(json.message || '회원가입에 실패했습니다.');
+        }
+      } catch { alert('서버와의 통신 중 오류가 발생했습니다.'); }
+      finally { btn.disabled = false; btn.textContent = '가입하기'; }
+    });
+  </script>
+</body>
+</html>

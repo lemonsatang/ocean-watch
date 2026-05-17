@@ -1,0 +1,2 @@
+# MyBatis XML 매퍼 파일을 이 폴더에 저장합니다.
+# application.yml의 mybatis.mapper-locations 경로: classpath:mapper/**/*.xml

@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OceanWatch — 수산물 AI 공정가격 플랫폼</title>
+  <meta name="description" content="AI와 QR로 수산물 유통의 투명성을 만듭니다. 공정한 가격, 신뢰할 수 있는 이력." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:  #2ECC71;
+      --yellow: #F1C40F;
+      --red:    #E74C3C;
+      --glass-bg:     rgba(255,255,255,0.08);
+      --glass-border: rgba(255,255,255,0.18);
+      --glass-blur:   blur(20px);
+      --text-main:    #f0f4ff;
+      --text-muted:   rgba(240,244,255,0.6);
+      --accent:       #38d9f5;
+      --accent-dark:  #0e9abf;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #020b18 0%, #041f3a 40%, #062e55 70%, #073b6e 100%);
+      min-height: 100vh;
+      color: var(--text-main);
+      overflow-x: hidden;
+    }
+
+    /* ── 배경 장식 원 ─────────────────────────── */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.25;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, #38d9f5, transparent);
+      top: -150px; left: -150px;
+    }
+    body::after {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, #2ECC71, transparent);
+      bottom: -100px; right: -100px;
+    }
+
+    /* ── 공통 글래스 카드 ─────────────────────── */
+    .glass {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+    }
+
+    /* ── 네비게이션 ───────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 16px 48px;
+      background: rgba(2,11,24,0.6);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--glass-border);
+    }
+    .logo {
+      font-size: 1.4rem; font-weight: 700; letter-spacing: -0.5px;
+      color: var(--accent);
+    }
+    .logo span { color: var(--text-main); }
+    .nav-btns { display: flex; gap: 12px; }
+    .btn {
+      padding: 10px 24px; border-radius: 50px; font-size: 0.9rem;
+      font-weight: 500; cursor: pointer; border: none; transition: all .25s;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--glass-border);
+      color: var(--text-main);
+    }
+    .btn-outline:hover { background: var(--glass-bg); border-color: var(--accent); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #1a8fa5);
+      color: #020b18; font-weight: 700;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(56,217,245,0.3); }
+
+    /* ── 히어로 섹션 ──────────────────────────── */
+    .hero {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; align-items: center;
+      justify-content: center; text-align: center;
+      padding: 160px 24px 100px;
+      min-height: 100vh;
+    }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px; border-radius: 50px;
+      background: rgba(56,217,245,0.1);
+      border: 1px solid rgba(56,217,245,0.3);
+      font-size: 0.8rem; color: var(--accent); margin-bottom: 32px;
+      animation: fadeInUp .6s ease both;
+    }
+    .hero-badge::before { content: '🐟'; }
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.6rem);
+      font-weight: 700; line-height: 1.2;
+      margin-bottom: 20px;
+      animation: fadeInUp .7s ease .1s both;
+    }
+    h1 em { color: var(--accent); font-style: normal; }
+    .hero-sub {
+      font-size: 1.05rem; color: var(--text-muted);
+      max-width: 520px; line-height: 1.8;
+      margin-bottom: 40px;
+      animation: fadeInUp .7s ease .2s both;
+    }
+    .hero-cta { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
+      animation: fadeInUp .7s ease .3s both;
+    }
+    .btn-lg { padding: 14px 36px; font-size: 1rem; }
+
+    /* 신호등 뱃지 */
+    .signals {
+      display: flex; gap: 24px; margin-top: 64px; flex-wrap: wrap; justify-content: center;
+      animation: fadeInUp .7s ease .4s both;
+    }
+    .signal-card {
+      padding: 20px 28px; text-align: center;
+    }
+    .dot {
+      width: 40px; height: 40px; border-radius: 50%;
+      margin: 0 auto 10px; box-shadow: 0 0 20px currentColor;
+    }
+    .dot-g { background: var(--green);  color: var(--green);  }
+    .dot-y { background: var(--yellow); color: var(--yellow); }
+    .dot-r { background: var(--red);    color: var(--red);    }
+    .signal-card p { font-size: 0.8rem; color: var(--text-muted); }
+
+    /* ── 피처 섹션 ────────────────────────────── */
+    .features {
+      position: relative; z-index: 1;
+      max-width: 1100px; margin: 0 auto; padding: 80px 24px;
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;
+    }
+    .feat-card { padding: 32px; transition: transform .3s; }
+    .feat-card:hover { transform: translateY(-6px); }
+    .feat-icon { font-size: 2rem; margin-bottom: 16px; }
+    .feat-card h3 { font-size: 1.1rem; margin-bottom: 10px; }
+    .feat-card p  { font-size: 0.88rem; color: var(--text-muted); line-height: 1.7; }
+
+    /* ── 모달 오버레이 ────────────────────────── */
+    .overlay {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,0.65);
+      backdrop-filter: blur(6px);
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .overlay.active { display: flex; }
+
+    .modal {
+      width: 100%; max-width: 460px;
+      padding: 40px; position: relative;
+      animation: scaleIn .3s ease;
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 20px;
+      background: none; border: none; color: var(--text-muted);
+      font-size: 1.4rem; cursor: pointer; line-height: 1;
+    }
+    .modal-close:hover { color: var(--text-main); }
+    .modal h2 { font-size: 1.5rem; margin-bottom: 6px; }
+    .modal .subtitle { font-size: 0.88rem; color: var(--text-muted); margin-bottom: 28px; }
+
+    /* ── 폼 요소 ──────────────────────────────── */
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block; font-size: 0.82rem; color: var(--text-muted);
+      margin-bottom: 6px; font-weight: 500;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%; padding: 12px 16px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px; color: var(--text-main);
+      font-size: 0.95rem; font-family: 'Noto Sans KR', sans-serif;
+      outline: none; transition: border-color .2s;
+    }
+    .form-group input::placeholder { color: var(--text-muted); }
+    .form-group input:focus,
+    .form-group select:focus { border-color: var(--accent); }
+    .form-group input.valid   { border-color: var(--green); }
+    .form-group input.invalid { border-color: var(--red); }
+    .form-group select option { background: #041f3a; }
+
+    .hint {
+      font-size: 0.78rem; margin-top: 5px; min-height: 16px; transition: color .2s;
+    }
+    .hint.ok  { color: var(--green); }
+    .hint.err { color: var(--red); }
+
+    .btn-full { width: 100%; margin-top: 8px; border-radius: 10px; padding: 14px; font-size: 1rem; }
+
+    .divider {
+      text-align: center; font-size: 0.82rem; color: var(--text-muted);
+      margin: 18px 0;
+    }
+    .link-btn {
+      background: none; border: none; color: var(--accent);
+      cursor: pointer; font-size: 0.88rem; text-decoration: underline;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    /* ── 푸터 ─────────────────────────────────── */
+    footer {
+      position: relative; z-index: 1;
+      text-align: center; padding: 40px 24px;
+      color: var(--text-muted); font-size: 0.82rem; border-top: 1px solid var(--glass-border);
+    }
+
+    /* ── 애니메이션 ───────────────────────────── */
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.93); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* ── 반응형 ───────────────────────────────── */
+    @media (max-width: 600px) {
+      nav { padding: 14px 20px; }
+      .logo { font-size: 1.1rem; }
+      .btn { padding: 8px 16px; font-size: 0.82rem; }
+      .modal { padding: 28px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── 네비게이션 ──────────────────────────────── -->
+<nav>
+  <div class="logo">Ocean<span>Watch</span></div>
+  <div class="nav-btns">
+    <button class="btn btn-outline" id="btn-login">로그인</button>
+    <button class="btn btn-primary" id="btn-signup">회원가입</button>
+  </div>
+</nav>
+
+<!-- ── 히어로 섹션 ─────────────────────────────── -->
+<section class="hero">
+  <div class="hero-badge">AI 기반 수산물 공정가격 플랫폼</div>
+  <h1>수산물 유통의 <em>투명한 미래</em>,<br>OceanWatch가 만듭니다</h1>
+  <p class="hero-sub">
+    QR 하나로 어부의 그물에서 소비자의 식탁까지,<br>
+    모든 유통 경로와 가격 적정성을 AI가 실시간으로 검증합니다.
+  </p>
+  <div class="hero-cta">
+    <button class="btn btn-primary btn-lg" id="btn-signup2">지금 시작하기</button>
+    <button class="btn btn-outline btn-lg">QR 조회 체험 →</button>
+  </div>
+
+  <!-- AI 신호등 카드 -->
+  <div class="signals">
+    <div class="glass signal-card">
+      <div class="dot dot-g"></div>
+      <strong>적정가</strong>
+      <p>AI 밴드 내 공정 가격</p>
+    </div>
+    <div class="glass signal-card">
+      <div class="dot dot-y"></div>
+      <strong>경고</strong>
+      <p>시세 소폭 초과 의심</p>
+    </div>
+    <div class="glass signal-card">
+      <div class="dot dot-r"></div>
+      <strong>폭리 의심</strong>
+      <p>AI 밴드 대폭 초과</p>
+    </div>
+  </div>
+</section>
+
+<!-- ── 피처 섹션 ───────────────────────────────── -->
+<section class="features">
+  <div class="glass feat-card">
+    <div class="feat-icon">🔗</div>
+    <h3>계층형 유통 이력 추적</h3>
+    <p>생산자 → 도매 → 소매로 이어지는 유통 트리를 UUID 기반으로 완전하게 기록합니다.</p>
+  </div>
+  <div class="glass feat-card">
+    <div class="feat-icon">🤖</div>
+    <h3>AI 공정가격 실시간 판정</h3>
+    <p>KAMIS 시세 데이터와 AI 밴드를 비교해 거래 등록 즉시 신호등 결과를 산출합니다.</p>
+  </div>
+  <div class="glass feat-card">
+    <div class="feat-icon">📱</div>
+    <h3>QR 스캔 소비자 조회</h3>
+    <p>앱 설치 없이 QR 하나로 수산물의 전 유통 경로와 가격 흐름을 모바일에서 확인합니다.</p>
+  </div>
+  <div class="glass feat-card">
+    <div class="feat-icon">📊</div>
+    <h3>역할별 마이페이지</h3>
+    <p>어부부터 소매업자까지, 역할에 최적화된 통계 대시보드와 재고 에이징 분석을 제공합니다.</p>
+  </div>
+</section>
+
+<!-- ── 푸터 ───────────────────────────────────── -->
+<footer>
+  <p>© 2026 OceanWatch. 수산물 유통의 투명성을 위해.</p>
+</footer>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- 로그인 모달                                   -->
+<!-- ════════════════════════════════════════════ -->
+<div class="overlay" id="overlay-login">
+  <div class="glass modal">
+    <button class="modal-close" data-close="overlay-login">✕</button>
+    <h2>로그인</h2>
+    <p class="subtitle">이메일과 비밀번호로 로그인하세요.</p>
+
+    <form id="form-login" novalidate>
+      <div class="form-group">
+        <label>이메일</label>
+        <input type="email" id="login-email" placeholder="user@example.com" autocomplete="email" />
+      </div>
+      <div class="form-group">
+        <label>비밀번호</label>
+        <input type="password" id="login-pw" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">로그인</button>
+    </form>
+
+    <div class="divider">계정이 없으신가요? <button class="link-btn" id="go-signup">회원가입</button></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- 회원가입 모달                                 -->
+<!-- ════════════════════════════════════════════ -->
+<div class="overlay" id="overlay-signup">
+  <div class="glass modal">
+    <button class="modal-close" data-close="overlay-signup">✕</button>
+    <h2>회원가입</h2>
+    <p class="subtitle">OceanWatch와 함께 투명한 유통을 시작하세요.</p>
+
+    <form id="form-signup" novalidate>
+      <!-- 이메일 -->
+      <div class="form-group">
+        <label>이메일 *</label>
+        <input type="email" id="su-email" placeholder="user@example.com" autocomplete="email" />
+        <div class="hint" id="hint-email"></div>
+      </div>
+
+      <!-- 역할 -->
+      <div class="form-group">
+        <label>역할 *</label>
+        <select id="su-role">
+          <option value="">-- 역할을 선택하세요 --</option>
+          <option value="PRODUCER">생산자 (어부)</option>
+          <option value="WHOLESALER">도매업자</option>
+          <option value="RETAILER">소매업자</option>
+          <option value="CONSUMER">소비자</option>
+        </select>
+      </div>
+
+      <!-- 이름 -->
+      <div class="form-group">
+        <label>이름 *</label>
+        <input type="text" id="su-name" placeholder="홍길동" />
+      </div>
+
+      <!-- 전화번호 -->
+      <div class="form-group">
+        <label>전화번호 * (숫자만)</label>
+        <input type="tel" id="su-phone" placeholder="01012345678" maxlength="11" />
+        <div class="hint" id="hint-phone"></div>
+      </div>
+
+      <!-- 비밀번호 -->
+      <div class="form-group">
+        <label>비밀번호 *</label>
+        <input type="password" id="su-pw" placeholder="8자 이상 입력" autocomplete="new-password" />
+      </div>
+
+      <!-- 비밀번호 확인 -->
+      <div class="form-group">
+        <label>비밀번호 확인 *</label>
+        <input type="password" id="su-pw2" placeholder="비밀번호를 다시 입력하세요" autocomplete="new-password" />
+        <div class="hint" id="hint-pw"></div>
+      </div>
+
+      <!-- 사업자번호 (선택) -->
+      <div class="form-group">
+        <label>사업자등록번호 (선택)</label>
+        <input type="text" id="su-biz" placeholder="1234567890" maxlength="10" />
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" id="btn-submit-signup">가입하기</button>
+    </form>
+
+    <div class="divider">이미 계정이 있으신가요? <button class="link-btn" id="go-login">로그인</button></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════ -->
+<!-- JavaScript                                    -->
+<!-- ════════════════════════════════════════════ -->
+<script>
+  // ── 모달 열기/닫기 ───────────────────────────
+  const openModal  = id => document.getElementById(id).classList.add('active');
+  const closeModal = id => document.getElementById(id).classList.remove('active');
+
+  document.getElementById('btn-login').onclick   = () => openModal('overlay-login');
+  document.getElementById('btn-signup').onclick  = () => location.href = '/signup-step1.html';
+  document.getElementById('btn-signup2').onclick = () => location.href = '/signup-step1.html';
+  document.getElementById('go-signup').onclick = () => { closeModal('overlay-login');  openModal('overlay-signup'); };
+  document.getElementById('go-login').onclick  = () => { closeModal('overlay-signup'); openModal('overlay-login');  };
+
+  // 닫기 버튼
+  document.querySelectorAll('[data-close]').forEach(btn =>
+    btn.onclick = () => closeModal(btn.dataset.close)
+  );
+  // 오버레이 바깥 클릭 시 닫기
+  document.querySelectorAll('.overlay').forEach(ov =>
+    ov.onclick = e => { if (e.target === ov) ov.classList.remove('active'); }
+  );
+
+  // ── 이메일 중복 체크 (비동기, 디바운스 300ms) ──
+  let emailTimer;
+  const emailInput = document.getElementById('su-email');
+  const hintEmail  = document.getElementById('hint-email');
+
+  emailInput.addEventListener('input', () => {
+    clearTimeout(emailTimer);
+    hintEmail.textContent = '';
+    hintEmail.className = 'hint';
+    emailInput.className = '';
+
+    const val = emailInput.value.trim();
+    if (!val || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return;
+
+    hintEmail.textContent = '확인 중...';
+    emailTimer = setTimeout(async () => {
+      try {
+        const res  = await fetch(`/api/v1/auth/check-email?email=${encodeURIComponent(val)}`);
+        const json = await res.json();
+        if (json.data?.isAvailable) {
+          hintEmail.textContent = '✓ 사용 가능한 이메일입니다.';
+          hintEmail.className   = 'hint ok';
+          emailInput.className  = 'valid';
+        } else {
+          hintEmail.textContent = '✗ 이미 사용 중인 이메일입니다.';
+          hintEmail.className   = 'hint err';
+          emailInput.className  = 'invalid';
+        }
+      } catch {
+        hintEmail.textContent = '서버 연결 오류';
+        hintEmail.className   = 'hint err';
+      }
+    }, 300);
+  });
+
+  // ── 비밀번호 실시간 일치 검사 ─────────────────
+  const pw1     = document.getElementById('su-pw');
+  const pw2     = document.getElementById('su-pw2');
+  const hintPw  = document.getElementById('hint-pw');
+
+  const checkPw = () => {
+    if (!pw2.value) { hintPw.textContent = ''; pw2.className = ''; return; }
+    if (pw1.value === pw2.value) {
+      hintPw.textContent = '✓ 비밀번호가 일치합니다.';
+      hintPw.className   = 'hint ok';
+      pw2.className      = 'valid';
+    } else {
+      hintPw.textContent = '✗ 비밀번호가 일치하지 않습니다.';
+      hintPw.className   = 'hint err';
+      pw2.className      = 'invalid';
+    }
+  };
+  pw1.addEventListener('input', checkPw);
+  pw2.addEventListener('input', checkPw);
+
+  // ── 전화번호 숫자만 입력 ──────────────────────
+  const phoneInput = document.getElementById('su-phone');
+  const hintPhone  = document.getElementById('hint-phone');
+  phoneInput.addEventListener('input', () => {
+    phoneInput.value = phoneInput.value.replace(/\D/g, '');
+    const ok = /^[0-9]{10,11}$/.test(phoneInput.value);
+    hintPhone.textContent = phoneInput.value ? (ok ? '' : '✗ 10~11자리 숫자를 입력하세요.') : '';
+    hintPhone.className   = ok ? 'hint' : 'hint err';
+    phoneInput.className  = phoneInput.value ? (ok ? 'valid' : 'invalid') : '';
+  });
+
+  // ── 회원가입 폼 제출 ─────────────────────────
+  document.getElementById('form-signup').addEventListener('submit', async e => {
+    e.preventDefault();
+
+    const email     = document.getElementById('su-email').value.trim();
+    const role      = document.getElementById('su-role').value;
+    const userName  = document.getElementById('su-name').value.trim();
+    const phone     = document.getElementById('su-phone').value.trim();
+    const password  = pw1.value;
+    const password2 = pw2.value;
+    const businessNo = document.getElementById('su-biz').value.trim();
+
+    // 클라이언트 사전 검증
+    if (!email || !role || !userName || !phone || !password) {
+      alert('필수 항목을 모두 입력해 주세요.'); return;
+    }
+    if (password !== password2) {
+      alert('비밀번호가 일치하지 않습니다.'); return;
+    }
+    if (password.length < 8) {
+      alert('비밀번호는 8자 이상이어야 합니다.'); return;
+    }
+    if (emailInput.className === 'invalid') {
+      alert('이미 사용 중인 이메일입니다.'); return;
+    }
+
+    const btn = document.getElementById('btn-submit-signup');
+    btn.disabled = true; btn.textContent = '처리 중...';
+
+    try {
+      const res = await fetch('/api/v1/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, userName, role, phone, businessNo: businessNo || null })
+      });
+      const json = await res.json();
+
+      if (res.ok && json.code === 'SUCCESS') {
+        alert('✅ 회원가입이 완료되었습니다! 로그인해 주세요.');
+        closeModal('overlay-signup');
+        openModal('overlay-login');
+        document.getElementById('form-signup').reset();
+        hintEmail.textContent = ''; hintPw.textContent = '';
+      } else {
+        alert(json.message || '회원가입에 실패했습니다. 다시 시도해 주세요.');
+      }
+    } catch {
+      alert('서버와의 통신 중 오류가 발생했습니다.');
+    } finally {
+      btn.disabled = false; btn.textContent = '가입하기';
+    }
+  });
+
+  // ── 로그인 폼 제출 (뼈대 — JWT 구현 후 교체) ──
+  document.getElementById('form-login').addEventListener('submit', async e => {
+    e.preventDefault();
+    alert('🔒 로그인 기능은 JWT 구현 완료 후 활성화됩니다.');
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Maven 빌드 산출물
+target/
+
+# IDE 설정 파일
+.idea/
+*.iml
+.vscode/
+
+# 로컬 환경 전용 설정 파일 (비밀번호 포함 - 깃허브 업로드 절대 금지)
+/src/main/resources/application-local.yml

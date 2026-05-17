@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>회원가입 — OceanWatch</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --glass-bg:rgba(255,255,255,.08);--glass-border:rgba(255,255,255,.18);
+      --accent:#38d9f5;--text-main:#f0f4ff;--text-muted:rgba(240,244,255,.6);
+      --green:#2ECC71;
+    }
+    body{font-family:'Noto Sans KR',sans-serif;background:linear-gradient(135deg,#020b18,#041f3a 40%,#062e55 70%,#073b6e);min-height:100vh;color:var(--text-main);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+    body::before{content:'';position:fixed;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,#38d9f5,transparent);filter:blur(80px);opacity:.2;top:-150px;left:-150px;pointer-events:none}
+
+    .logo{font-size:1.6rem;font-weight:700;color:var(--accent);margin-bottom:8px;letter-spacing:-.5px}
+    .logo span{color:var(--text-main)}
+    .step-label{font-size:.8rem;color:var(--text-muted);margin-bottom:48px}
+
+    h1{font-size:clamp(1.6rem,4vw,2.4rem);font-weight:700;text-align:center;margin-bottom:12px}
+    .subtitle{color:var(--text-muted);font-size:.95rem;text-align:center;margin-bottom:48px;line-height:1.7}
+
+    /* 역할 선택 카드 */
+    .role-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;width:100%;max-width:640px}
+    .role-card{
+      background:var(--glass-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+      border:1px solid var(--glass-border);border-radius:20px;
+      padding:40px 28px;text-align:center;cursor:pointer;
+      transition:transform .25s,border-color .25s,box-shadow .25s;
+    }
+    .role-card:hover{transform:translateY(-8px);border-color:var(--accent);box-shadow:0 16px 40px rgba(56,217,245,.2)}
+    .role-card .icon{font-size:3rem;margin-bottom:16px}
+    .role-card h2{font-size:1.3rem;margin-bottom:8px}
+    .role-card p{font-size:.82rem;color:var(--text-muted);line-height:1.6}
+    .role-card .badge{display:inline-block;margin-top:14px;padding:4px 14px;border-radius:50px;font-size:.75rem;font-weight:600;background:rgba(56,217,245,.12);color:var(--accent);border:1px solid rgba(56,217,245,.25)}
+
+    .back-btn{margin-top:36px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.88rem;font-family:'Noto Sans KR',sans-serif}
+    .back-btn:hover{color:var(--text-main)}
+
+    @media(max-width:520px){.role-grid{grid-template-columns:1fr}.role-card{padding:28px 20px}}
+  </style>
+</head>
+<body>
+  <div class="logo">Ocean<span>Watch</span></div>
+  <div class="step-label">회원가입 1단계 / 역할 선택</div>
+
+  <h1>어떤 목적으로 이용하시나요?</h1>
+  <p class="subtitle">역할에 맞게 최적화된 서비스를 제공해 드립니다.<br>역할은 가입 후 변경할 수 없으니 신중하게 선택해 주세요.</p>
+
+  <div class="role-grid">
+    <!-- 소비자 -->
+    <div class="role-card" id="card-consumer">
+      <div class="icon">🛒</div>
+      <h2>소비자</h2>
+      <p>QR 코드로 수산물 유통 이력을 확인하고, 안심하고 구매하고 싶으신 분</p>
+      <div class="badge">CONSUMER</div>
+    </div>
+
+    <!-- 유통업자 -->
+    <div class="role-card" id="card-distributor">
+      <div class="icon">🚢</div>
+      <h2>유통업자</h2>
+      <p>수산물을 생산하거나 유통·판매하는 생산자, 도매업자, 소매업자</p>
+      <div class="badge">PRODUCER / WHOLESALER / RETAILER</div>
+    </div>
+  </div>
+
+  <button class="back-btn" onclick="history.back()">← 메인으로 돌아가기</button>
+
+  <script>
+    document.getElementById('card-consumer').onclick = () => {
+      location.href = '/signup-step2.html?role=CONSUMER';
+    };
+    document.getElementById('card-distributor').onclick = () => {
+      location.href = '/signup-step2.html?role=DISTRIBUTOR';
+    };
+  </script>
+</body>
+</html>
