@@ -83,3 +83,8 @@
 > [!TIP]
 > **Map 기반 아키텍처의 철학**  
 > OceanWatch는 별도의 Entity, VO, DTO 클래스를 일절 생성하지 않습니다. 데이터베이스의 결과셋은 곧바로 MyBatis를 거쳐 `java.util.Map`으로 변환되며, 비즈니스 로직과 UI까지 하나의 유연한 맵(Map) 구조로 일관성 있게 흐르도록 극도의 미니멀리즘 아키텍처를 채택하고 있습니다.
+>
+> ## 화면ui
+> [메인]
+> <img width="1844" height="851" alt="image" src="https://github.com/user-attachments/assets/14f28561-5404-4140-958a-e99c4745347a" />
+
