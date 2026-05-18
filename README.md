@@ -1,4 +1,4 @@
-<img width="1844" height="851" alt="image" src="https://github.com/user-attachments/assets/af02f57a-e868-4857-a235-54bcf31e683b" /><div align="center">
+<div align="center">
   <img src="https://img.shields.io/badge/Ocean-Watch-0e9abf?style=for-the-badge&logo=anchor&logoColor=white" alt="OceanWatch Logo" />
   <h1>🌊 OceanWatch (스마트 수산물 안심 유통 플랫폼)</h1>
   <p>블록체인 스타일 데이터 체인 역추적 및 자바 내장형 AI 기반 수산물 공정가격 유도 시스템</p>
