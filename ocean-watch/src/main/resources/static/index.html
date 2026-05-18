@@ -239,12 +239,54 @@
       to   { opacity: 1; transform: scale(1); }
     }
 
-    /* ── 반응형 ───────────────────────────────── */
-    @media (max-width: 600px) {
-      nav { padding: 14px 20px; }
-      .logo { font-size: 1.1rem; }
-      .btn { padding: 8px 16px; font-size: 0.82rem; }
-      .modal { padding: 28px 20px; }
+    /* ── 반응형 및 헤더 배지 스타일 ─────────────────── */
+    .user-badge {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--accent);
+      margin-right: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(56, 217, 245, 0.08);
+      border: 1px solid rgba(56, 217, 245, 0.18);
+      padding: 6px 14px;
+      border-radius: 50px;
+      backdrop-filter: var(--glass-blur);
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 12px 20px; }
+      .logo { font-size: 1.2rem; }
+      .nav-btns { gap: 6px; }
+      .btn { padding: 8px 14px; font-size: 0.8rem; }
+      .user-badge {
+        padding: 4px 10px;
+        font-size: 0.78rem;
+        margin-right: 2px;
+        gap: 4px;
+      }
+      .user-badge-role { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      nav { padding: 10px 14px; }
+      .logo { font-size: 1.05rem; }
+      .nav-btns { gap: 4px; }
+      .btn { padding: 6px 10px; font-size: 0.75rem; }
+      .user-badge {
+        padding: 4px 6px;
+        border: none;
+        background: transparent;
+      }
+      .user-badge-name {
+        max-width: 55px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: inline-block;
+        vertical-align: middle;
+      }
     }
   </style>
 </head>
@@ -418,6 +460,72 @@
 <!-- JavaScript                                    -->
 <!-- ════════════════════════════════════════════ -->
 <script>
+  // ── 로그인 상태에 따른 헤더 UI 동적 스위칭 ─────────────────
+  const ROLE_LABELS = {
+    CONSUMER: '소비자', PRODUCER: '생산자 (어부)',
+    WHOLESALER: '도매업자', RETAILER: '소매업자', ADMIN: '관리자'
+  };
+
+  function checkLoginStatus() {
+    const userStr = localStorage.getItem('user');
+    const navBtns = document.querySelector('.nav-btns');
+    
+    if (userStr && navBtns) {
+      const user = JSON.parse(userStr);
+      
+      let registerBtnHtml = '';
+      if (user.role === 'PRODUCER') {
+        registerBtnHtml = `<button class="btn btn-outline" id="btn-trade-reg" style="border-color: var(--accent); color: var(--accent);">최초 거래 등록</button>`;
+      } else if (user.role === 'WHOLESALER' || user.role === 'RETAILER') {
+        registerBtnHtml = `<button class="btn btn-outline" id="btn-trade-pending" style="border-color: var(--accent); color: var(--accent);">인수 대기 목록</button>`;
+      }
+
+      navBtns.innerHTML = `
+        <span class="user-badge">
+          👤 <span class="user-badge-name">${user.userName}님</span> <span class="user-badge-role">(${ROLE_LABELS[user.role] || user.role})</span>
+        </span>
+        ${registerBtnHtml}
+        <button class="btn btn-outline" id="btn-mypage">마이페이지</button>
+        <button class="btn btn-primary" id="btn-logout">로그아웃</button>
+      `;
+      
+      // 거래 등록 버튼 동작 바인딩 (생산자용)
+      if (user.role === 'PRODUCER') {
+        document.getElementById('btn-trade-reg').onclick = () => {
+          location.href = '/trade-register.html';
+        };
+      }
+
+      // 거래 인수 대기 목록 버튼 동작 바인딩 (도/소매업자용)
+      if (user.role === 'WHOLESALER' || user.role === 'RETAILER') {
+        document.getElementById('btn-trade-pending').onclick = () => {
+          location.href = '/trade-pending-list.html';
+        };
+      }
+
+      // 로그아웃 버튼 동작 바인딩
+      document.getElementById('btn-logout').onclick = async () => {
+        try {
+          // 서버 세션도 로그아웃 처리
+          await fetch('/api/v1/auth/logout');
+        } catch (e) {
+          console.error('서버 로그아웃 통신 실패:', e);
+        }
+        localStorage.removeItem('user');
+        alert('로그아웃 되었습니다.');
+        location.reload();
+      };
+      
+      // 마이페이지 버튼 동작 바인딩
+      document.getElementById('btn-mypage').onclick = () => {
+        alert(`${user.userName}님의 마이페이지 대시보드로 이동합니다.`);
+      };
+    }
+  }
+
+  // DOM 로드 시 실행
+  window.addEventListener('DOMContentLoaded', checkLoginStatus);
+
   // ── 모달 열기/닫기 ───────────────────────────
   const openModal  = id => document.getElementById(id).classList.add('active');
   const closeModal = id => document.getElementById(id).classList.remove('active');
@@ -556,10 +664,38 @@
     }
   });
 
-  // ── 로그인 폼 제출 (뼈대 — JWT 구현 후 교체) ──
+  // ── 로그인 폼 제출 ───────────────────────────
   document.getElementById('form-login').addEventListener('submit', async e => {
     e.preventDefault();
-    alert('🔒 로그인 기능은 JWT 구현 완료 후 활성화됩니다.');
+
+    const email = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-pw').value;
+
+    if (!email || !password) {
+      alert('이메일과 비밀번호를 모두 입력해 주세요.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const json = await res.json();
+
+      if (res.ok && json.code === 'SUCCESS') {
+        alert('✅ 로그인이 완료되었습니다!');
+        // 사용자 정보 로컬 스토리지에 저장
+        localStorage.setItem('user', JSON.stringify(json.data));
+        closeModal('overlay-login');
+        location.href = '/';
+      } else {
+        alert(json.message || '로그인에 실패했습니다. 이메일과 비밀번호를 확인해 주세요.');
+      }
+    } catch {
+      alert('서버와의 통신 중 오류가 발생했습니다.');
+    }
   });
 </script>
 </body>

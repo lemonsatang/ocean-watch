@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanWatch — 수산물 인수 대기 목록</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:        #2ECC71;
+      --red:          #E74C3C;
+      --glass-bg:     rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-blur:   blur(25px);
+      --text-main:    #f0f4ff;
+      --text-muted:   rgba(240, 244, 255, 0.6);
+      --accent:       #38d9f5;
+      --accent-dark:  #0e9abf;
+      --amber:        #f39c12;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #020b18 0%, #041f3a 40%, #062e55 70%, #073b6e 100%);
+      min-height: 100vh;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 60px 20px;
+    }
+
+    /* ── 공통 글래스 카드 (와이드 테이블 레이아웃) ─────────────────────── */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 1000px;
+      padding: 40px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .header-logo span { color: var(--text-main); }
+    
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    /* ── 테이블 레이아웃 ───────────────────────── */
+    .table-container {
+      width: 100%;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      border: 1px solid var(--glass-border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 16px 20px;
+      font-size: 0.92rem;
+      border-bottom: 1px solid var(--glass-border);
+      vertical-align: middle;
+    }
+
+    th {
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-muted);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    /* ── 배지 스타일 ─────────────────────────── */
+    .badge {
+      display: inline-block;
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-align: center;
+    }
+    .badge-public {
+      background: rgba(56, 217, 245, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(56, 217, 245, 0.3);
+    }
+    .badge-private {
+      background: rgba(243, 156, 18, 0.12);
+      color: var(--amber);
+      border: 1px solid rgba(243, 156, 18, 0.3);
+    }
+
+    /* ── 버튼 액션 디자인 ────────────────────── */
+    .btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .action-btn {
+      width: 86px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all 0.25s;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+
+    .btn-approve {
+      background: rgba(46, 204, 113, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(46, 204, 113, 0.4);
+    }
+    .btn-approve:hover {
+      background: var(--green);
+      color: #020b18;
+      box-shadow: 0 4px 16px rgba(46, 204, 113, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .btn-reject {
+      background: rgba(231, 76, 60, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(231, 76, 60, 0.4);
+    }
+    .btn-reject:hover {
+      background: var(--red);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(231, 76, 60, 0.4);
+      transform: translateY(-1px);
+    }
+
+    /* ── 모바일 반응형: 가로 테이블 ➡️ 세로형 프리미엄 카드 리스트 변환 ── */
+    @media (max-width: 768px) {
+      .glass-card {
+        padding: 24px 16px;
+      }
+      
+      .table-container {
+        border: none;
+      }
+
+      table, thead, tbody, th, td, tr {
+        display: block;
+        width: 100% !important;
+      }
+
+      thead {
+        display: none; /* 헤더 숨김 */
+      }
+
+      tr {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
+        margin-bottom: 16px;
+        padding: 18px 16px;
+        transition: transform 0.2s;
+      }
+      tr:hover {
+        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.05);
+      }
+
+      td {
+        border-bottom: none;
+        padding: 8px 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.9rem;
+      }
+
+      /* data-label 속성값을 활용한 모바일 설명 레이블 주입 */
+      td::before {
+        content: attr(data-label);
+        font-weight: 500;
+        color: var(--text-muted);
+        font-size: 0.8rem;
+      }
+
+      td[data-label="어종"] {
+        font-size: 1.05rem;
+      }
+
+      /* 액션 버튼 그룹 모바일 최적화 */
+      td[data-label="액션"] {
+        padding-top: 14px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        margin-top: 8px;
+        display: block;
+      }
+
+      .btn-group {
+        width: 100%;
+        display: flex;
+        gap: 10px;
+      }
+
+      .action-btn {
+        flex: 1;
+        width: 100%;
+        height: 40px;
+        font-size: 0.9rem;
+      }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 30px;
+    }
+    .back-link a {
+      color: var(--accent);
+      font-size: 0.9rem;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .back-link a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+
+    /* 로딩 스피너 */
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border-left-color: var(--accent);
+      animation: spin 1s linear infinite;
+      margin: 40px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glass-card">
+    <div class="header-logo">Ocean<span>Watch</span></div>
+    <h2>인수 대기 수산물 목록</h2>
+    <p class="subtitle">생산자가 등록한 전체 공개 매물 또는 나에게 전달된 지정 거래를 인수 승인합니다.</p>
+
+    <!-- 로딩 스피너 -->
+    <div id="loading-spinner" class="spinner"></div>
+
+    <!-- 데이터 테이블 -->
+    <div class="table-container" id="table-wrap" style="display: none;">
+      <table>
+        <thead>
+          <tr>
+            <th>구분</th>
+            <th>어종</th>
+            <th>수량 (kg)</th>
+            <th>생산자 (상호명)</th>
+            <th>판매제안가 (원)</th>
+            <th>등록일시</th>
+            <th style="width: 180px;">액션</th>
+          </tr>
+        </thead>
+        <tbody id="trade-list-body">
+          <!-- 비동기 주입 -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 검색 결과 없음 상태 -->
+    <div id="no-data" class="empty-state" style="display: none;">
+      📥 현재 인수 대기 중인 거래 매물이 존재하지 않습니다.
+    </div>
+
+    <div class="back-link">
+      <a href="/">← 메인 화면으로 돌아가기</a>
+    </div>
+  </div>
+
+  <script>
+    const spinner = document.getElementById('loading-spinner');
+    const tableWrap = document.getElementById('table-wrap');
+    const noData = document.getElementById('no-data');
+    const listBody = document.getElementById('trade-list-body');
+
+    // ── 세션 로그인 및 역할군 검증 ─────────────────────────────
+    window.addEventListener('DOMContentLoaded', () => {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) {
+        alert('🔒 로그인이 필요한 페이지입니다.');
+        location.href = '/';
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      if (user.role !== 'WHOLESALER' && user.role !== 'RETAILER') {
+        alert('🚫 인수 대기 목록 조회는 도매업자(WHOLESALER) 또는 소매업자(RETAILER)만 가능합니다.');
+        location.href = '/';
+        return;
+      }
+
+      loadPendingTrades();
+    });
+
+    // ── 대기 중인 거래 목록 비동기 조회 ────────────────────────
+    async function loadPendingTrades() {
+      try {
+        const res = await fetch('/api/v1/trade/pending');
+        const json = await res.json();
+
+        spinner.style.display = 'none';
+
+        if (res.ok && json.code === 'SUCCESS') {
+          const list = json.data;
+          
+          if (!list || list.length === 0) {
+            noData.style.display = 'block';
+            tableWrap.style.display = 'none';
+            return;
+          }
+
+          listBody.innerHTML = '';
+          noData.style.display = 'none';
+          tableWrap.style.display = 'block';
+
+          list.forEach(t => {
+            const tr = document.createElement('tr');
+            
+            // 구분 배지 결정
+            const isPublic = !t.receiverId;
+            const badgeClass = isPublic ? 'badge-public' : 'badge-private';
+            const badgeText = isPublic ? '🌐 전체 공개' : '🔒 지정 거래';
+
+            // 한국어 어종명 포맷팅
+            const fishText = t.fishType;
+            
+            // 날짜 포맷팅
+            const regDate = new Date(t.createdAt).toLocaleString('ko-KR', {
+              year: 'numeric', month: '2-digit', day: '2-digit',
+              hour: '2-digit', minute: '2-digit'
+            });
+
+            tr.innerHTML = `
+              <td data-label="구분"><span class="badge ${badgeClass}">${badgeText}</span></td>
+              <td data-label="어종" style="font-weight: 700;">${fishText}</td>
+              <td data-label="수량">${t.quantity.toLocaleString()} kg</td>
+              <td data-label="생산자">${t.producerName || '알 수 없음'}</td>
+              <td data-label="판매제안가" style="font-weight: 700; color: var(--accent);">${t.sellPrice.toLocaleString()} 원</td>
+              <td data-label="등록일시" style="font-size: 0.8rem; color: var(--text-muted);">${regDate}</td>
+              <td data-label="액션">
+                <div class="btn-group">
+                  <button class="action-btn btn-approve" onclick="approveTrade('${t.traceId}', ${t.quantity})">인수 승인</button>
+                  <button class="action-btn btn-reject" onclick="rejectTrade('${t.traceId}')">거절</button>
+                </div>
+              </td>
+            `;
+            listBody.appendChild(tr);
+          });
+        } else {
+          alert(json.message || '인수 대기 목록을 불러오는 중 오류가 발생했습니다.');
+        }
+      } catch (err) {
+        spinner.style.display = 'none';
+        alert('서버와 통신하는 도중 오류가 발생했습니다.');
+      }
+    }
+
+    // ── [인수 승인] API 처리 ─────────────────────────────
+    async function approveTrade(traceId, originalQty) {
+      const inputVal = prompt(`인수하실 수량을 입력하세요 (최대 ${originalQty}kg):`, originalQty);
+      
+      // 사용자가 취소를 눌렀을 때
+      if (inputVal === null) {
+        return;
+      }
+      
+      const qtyVal = parseFloat(inputVal);
+      if (isNaN(qtyVal) || qtyVal <= 0) {
+        alert('올바른 수량을 입력해 주세요.');
+        return;
+      }
+      
+      if (qtyVal > originalQty) {
+        alert('원본 수량보다 더 많은 양을 인수할 수 없습니다.');
+        return;
+      }
+      
+      const bodyData = { traceId };
+      const isPartial = qtyVal < originalQty;
+      if (isPartial) {
+        bodyData.adjustedQty = qtyVal;
+      }
+
+      try {
+        const res = await fetch('/api/v1/trade/approve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bodyData)
+        });
+        const json = await res.json();
+
+        if (res.ok && json.code === 'SUCCESS') {
+          if (isPartial) {
+            alert('✅ 선택하신 수량만큼 부분 인수가 완료되었습니다. 남은 수량은 공개 매물로 유지됩니다.');
+          } else {
+            alert('✅ 거래 인수가 성공적으로 승인 및 완료되었습니다!');
+          }
+          location.reload(); // 목록 새로고침
+        } else {
+          alert(json.message || '거래 인수 처리에 실패했습니다.');
+        }
+      } catch {
+        alert('서버와의 인수 처리 요청 통신에 실패했습니다.');
+      }
+    }
+
+    // ── [거절] API 처리 ─────────────────────────────
+    async function rejectTrade(traceId) {
+      if (!confirm('정말로 해당 거래를 거절하시겠습니까?')) {
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/v1/trade/reject', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ traceId })
+        });
+        const json = await res.json();
+
+        if (res.ok && json.code === 'SUCCESS') {
+          alert('✅ 지정 거래가 성공적으로 거절 처리되었습니다.');
+          location.reload(); // 목록 새로고침
+        } else {
+          alert(json.message || '거래 거절 처리에 실패했습니다.');
+        }
+      } catch {
+        alert('서버와의 거절 처리 요청 통신에 실패했습니다.');
+      }
+    }
+  </script>
+</body>
+</html>

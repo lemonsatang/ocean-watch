@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanWatch — 수산물 유통 이력 추적</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:        #2ECC71;
+      --red:          #E74C3C;
+      --glass-bg:     rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-blur:   blur(25px);
+      --text-main:    #f0f4ff;
+      --text-muted:   rgba(240, 244, 255, 0.6);
+      --accent:       #38d9f5;
+      --accent-dark:  #0e9abf;
+      --amber:        #f39c12;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #020b18 0%, #041f3a 40%, #062e55 70%, #073b6e 100%);
+      min-height: 100vh;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 600px;
+      padding: 40px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .header-logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .header-logo span { color: var(--text-main); }
+    
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    /* ── 타임라인 UI ───────────────────────────── */
+    .timeline {
+      position: relative;
+      margin: 20px 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    /* 중앙선 */
+    .timeline::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 20px;
+      width: 2px;
+      background: rgba(56, 217, 245, 0.3);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-left: 60px;
+      margin-bottom: 30px;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+    }
+
+    /* 노드 점 */
+    .timeline-badge {
+      position: absolute;
+      left: 10px;
+      top: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 4px solid #020b18;
+      box-shadow: 0 0 10px rgba(56, 217, 245, 0.5);
+      z-index: 1;
+    }
+
+    .timeline-item:last-child .timeline-badge {
+      background: var(--green);
+      box-shadow: 0 0 10px rgba(46, 204, 113, 0.5);
+    }
+
+    /* 타임라인 내용 카드 */
+    .timeline-content {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .timeline-content:hover {
+      transform: translateX(5px);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .timeline-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 10px;
+    }
+
+    .timeline-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .timeline-role {
+      font-size: 0.8rem;
+      color: var(--accent);
+      background: rgba(56, 217, 245, 0.1);
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-weight: 500;
+    }
+
+    .timeline-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .timeline-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+      gap: 10px;
+    }
+
+    .info-label {
+      color: var(--text-muted);
+      width: 35%;
+      flex-shrink: 0;
+    }
+
+    .info-value, .price-value {
+      width: 65%;
+      text-align: right;
+      word-break: keep-all;
+    }
+
+    .info-value {
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .price-value {
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    /* ── 공정가 신호등 배지 ────────────────────── */
+    .fair-price-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-top: 5px;
+    }
+
+    .badge-green {
+      background: rgba(46, 204, 113, 0.15);
+      color: var(--green);
+      border: 1px solid rgba(46, 204, 113, 0.4);
+    }
+
+    .badge-yellow {
+      background: rgba(243, 156, 18, 0.15);
+      color: var(--amber);
+      border: 1px solid rgba(243, 156, 18, 0.4);
+    }
+
+    .badge-red {
+      background: rgba(231, 76, 60, 0.15);
+      color: var(--red);
+      border: 1px solid rgba(231, 76, 60, 0.4);
+    }
+
+    .badge-none {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    /* 로딩 스피너 및 에러 메시지 */
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border-left-color: var(--accent);
+      animation: spin 1s linear infinite;
+      margin: 40px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .message-state {
+      text-align: center;
+      padding: 30px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+    }
+
+    .error-msg {
+      color: var(--red);
+    }
+
+    /* ── 상단 네비게이션 버튼 ──────────────────── */
+    .nav-top {
+      text-align: right;
+      margin-bottom: 5px;
+    }
+    
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+    
+    .btn-home:hover {
+      background: rgba(56, 217, 245, 0.15);
+      color: var(--accent);
+      border-color: rgba(56, 217, 245, 0.4);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 10px rgba(56, 217, 245, 0.1);
+    }
+
+    /* ── 반응형 모바일 최적화 ────────────────────── */
+    @media (max-width: 600px) {
+      body {
+        padding: 30px 15px;
+      }
+      .glass-card {
+        padding: 25px 20px;
+        border-radius: 18px;
+      }
+      .header-logo {
+        font-size: 1.5rem;
+      }
+      h2 {
+        font-size: 1.3rem;
+      }
+      .subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 25px;
+      }
+      .nav-top {
+        margin-bottom: 10px;
+        text-align: center; /* 모바일에서는 중앙 정렬하여 접근성 강화 */
+      }
+      .btn-home {
+        padding: 8px 20px;
+        font-size: 0.9rem;
+        width: auto;
+      }
+      .timeline-content {
+        padding: 15px;
+      }
+      .timeline-item {
+        padding-left: 45px;
+      }
+      .timeline::before {
+        left: 15px;
+      }
+      .timeline-badge {
+        left: 5px;
+        width: 20px;
+        height: 20px;
+        border-width: 3px;
+      }
+      .timeline-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+      }
+      .timeline-title {
+        font-size: 1rem;
+      }
+      .timeline-date {
+        font-size: 0.8rem;
+      }
+      .info-row {
+        font-size: 0.88rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glass-card">
+    <!-- 메인으로 가기 버튼 -->
+    <div class="nav-top">
+      <a href="/" class="btn-home">← 메인 화면으로 돌아가기</a>
+    </div>
+
+    <div class="header-logo">Ocean<span>Watch</span></div>
+    <h2>수산물 유통 이력 역추적</h2>
+    <p class="subtitle" id="subtitle-text">소비자 테이블에 오르기까지의 유통 과정을 확인합니다.</p>
+
+    <!-- 로딩 스피너 -->
+    <div id="loading-spinner" class="spinner"></div>
+
+    <!-- 타임라인 컨테이너 -->
+    <ul id="timeline-container" class="timeline" style="display: none;">
+      <!-- 비동기 렌더링 영역 -->
+    </ul>
+
+    <!-- 메시지 상태 -->
+    <div id="message-container" class="message-state" style="display: none;">
+      <!-- 메시지 출력 영역 -->
+    </div>
+
+  </div>
+
+  <script>
+    const spinner = document.getElementById('loading-spinner');
+    const timelineContainer = document.getElementById('timeline-container');
+    const messageContainer = document.getElementById('message-container');
+    const subtitleText = document.getElementById('subtitle-text');
+
+    // 역할별 한글 명칭 변환
+    const roleMap = {
+      'PRODUCER': '생산자',
+      'WHOLESALER': '도매업자',
+      'RETAILER': '소매업자'
+    };
+
+    // 공정가 신호등 배지 렌더링 헬퍼 함수
+    function getFairPriceBadge(status) {
+      if (status === 'Y') {
+        return `<div class="fair-price-badge badge-green">🟢 적정 공정가</div>`;
+      } else if (status === 'W') {
+        return `<div class="fair-price-badge badge-yellow">🟡 시세 높음 주의</div>`;
+      } else if (status === 'N') {
+        return `<div class="fair-price-badge badge-red">🔴 비정상 폭리 경고</div>`;
+      }
+      return `<div class="fair-price-badge badge-none">⚪ 신호등 판정 없음</div>`;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      // 주소창에서 traceId 파라미터 추출
+      const urlParams = new URLSearchParams(window.location.search);
+      const traceId = urlParams.get('traceId');
+
+      if (!traceId) {
+        showError('유효하지 않은 접근입니다. 추적할 거래 ID가 URL에 포함되어야 합니다.');
+        return;
+      }
+
+      fetchTimeline(traceId);
+    });
+
+    async function fetchTimeline(traceId) {
+      try {
+        const res = await fetch(`/api/v1/trace/timeline/${traceId}`);
+        const json = await res.json();
+
+        spinner.style.display = 'none';
+
+        if (res.ok && json.code === 'SUCCESS') {
+          const list = json.data;
+          
+          if (!list || list.length === 0) {
+            showError('해당 거래에 대한 유통 이력을 찾을 수 없습니다.');
+            return;
+          }
+
+          renderTimeline(list);
+        } else {
+          showError(json.message || '유통 이력을 불러오는 중 오류가 발생했습니다.');
+        }
+      } catch (err) {
+        spinner.style.display = 'none';
+        showError('서버와의 통신 도중 오류가 발생했습니다.');
+      }
+    }
+
+    function renderTimeline(list) {
+      timelineContainer.innerHTML = '';
+      
+      // 첫 번째 노드(최근 소매/도매 노드)의 어종 정보 추출
+      if (list.length > 0) {
+        const fishType = list[0].fishType;
+        subtitleText.innerHTML = `<span style="color: var(--accent); font-weight: 700;">${fishType}</span>의 유통 과정을 역추적하여 보여줍니다.`;
+      }
+
+      list.forEach((trace, index) => {
+        const li = document.createElement('li');
+        li.className = 'timeline-item';
+
+        const roleName = roleMap[trace.role] || trace.role || '알 수 없음';
+        const userName = trace.userName || '알 수 없음';
+        
+        // 날짜 포맷팅
+        const dateObj = new Date(trace.createdAt);
+        const dateStr = dateObj.toLocaleString('ko-KR', {
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        });
+
+        // AI 신호등 뱃지 생성
+        const badgeHtml = trace.fairPriceStatus ? getFairPriceBadge(trace.fairPriceStatus) : '';
+
+        // 판매가 렌더링 (최초 생산자부터 시작되므로 각 노드의 sellPrice 렌더링)
+        const priceStr = trace.sellPrice ? `${trace.sellPrice.toLocaleString()} 원` : '가격 미상';
+        const qtyStr = trace.quantity ? `${trace.quantity.toLocaleString()} kg` : '-';
+
+        li.innerHTML = `
+          <div class="timeline-badge"></div>
+          <div class="timeline-content">
+            <div class="timeline-header">
+              <div class="timeline-title">
+                ${userName} <span class="timeline-role">${roleName}</span>
+              </div>
+              <div class="timeline-date">${dateStr}</div>
+            </div>
+            <div class="timeline-body">
+              <div class="info-row">
+                <span class="info-label">유통 어종</span>
+                <span class="info-value">${trace.fishType}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">취급 수량</span>
+                <span class="info-value">${qtyStr}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">판매/제안가</span>
+                <span class="price-value">${priceStr}</span>
+              </div>
+              <div style="text-align: right; margin-top: 4px;">
+                ${badgeHtml}
+              </div>
+            </div>
+          </div>
+        `;
+        timelineContainer.appendChild(li);
+      });
+
+      timelineContainer.style.display = 'block';
+    }
+
+    function showError(message) {
+      spinner.style.display = 'none';
+      timelineContainer.style.display = 'none';
+      messageContainer.style.display = 'block';
+      messageContainer.innerHTML = `<span class="error-msg">⚠️ ${message}</span>`;
+    }
+  </script>
+</body>
+</html>

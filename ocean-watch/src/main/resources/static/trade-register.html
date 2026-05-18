@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanWatch — 생산자 최초 거래 등록</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:  #2ECC71;
+      --glass-bg:     rgba(255,255,255,0.06);
+      --glass-border: rgba(255,255,255,0.15);
+      --glass-blur:   blur(20px);
+      --text-main:    #f0f4ff;
+      --text-muted:   rgba(240,244,255,0.6);
+      --accent:       #38d9f5;
+      --accent-dark:  #0e9abf;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #020b18 0%, #041f3a 40%, #062e55 70%, #073b6e 100%);
+      min-height: 100vh;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+
+    /* ── 공통 글래스 카드 ─────────────────────── */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 480px;
+      padding: 40px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .header-logo {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .header-logo span { color: var(--text-main); }
+    
+    h2 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    /* ── 폼 요소 ──────────────────────────────── */
+    .form-group { margin-bottom: 20px; }
+    .form-group label {
+      display: block;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 13px 16px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 10px;
+      color: var(--text-main);
+      font-size: 0.95rem;
+      font-family: 'Noto Sans KR', sans-serif;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+    }
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 8px rgba(56,217,245,0.2);
+    }
+    .form-group select option {
+      background: #041f3a;
+      color: var(--text-main);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: all .25s;
+      font-family: 'Noto Sans KR', sans-serif;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #1a8fa5);
+      color: #020b18;
+      margin-top: 10px;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(56,217,245,0.3);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .back-link {
+      text-align: center;
+      margin-top: 24px;
+    }
+    .back-link a {
+      color: var(--accent);
+      font-size: 0.88rem;
+      text-decoration: none;
+      transition: color .2s;
+    }
+    .back-link a:hover {
+      color: #fff;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glass-card">
+    <div class="header-logo">Ocean<span>Watch</span></div>
+    <h2>생산물 최초 등록 (어부용)</h2>
+    <p class="subtitle">잡아 올린 수산물을 등록하여 도매업자에게 판매 제안을 보냅니다.</p>
+
+    <form id="form-register-trade" novalidate>
+      <!-- 어종 선택 -->
+      <div class="form-group">
+        <label>어종 (생산품 종류) *</label>
+        <select id="t-fish" required>
+          <option value="">-- 어종을 선택하세요 --</option>
+          <option value="고등어">고등어</option>
+          <option value="갈치">갈치</option>
+          <option value="넙치">넙치 (광어)</option>
+          <option value="오징어">오징어</option>
+          <option value="새우">새우</option>
+        </select>
+      </div>
+
+      <!-- 수량 -->
+      <div class="form-group">
+        <label>수량 (중량 - kg 단위) *</label>
+        <input type="number" id="t-qty" placeholder="예: 150.5" step="0.01" min="0.01" required />
+      </div>
+
+      <!-- 판매단가 -->
+      <div class="form-group">
+        <label>최초 판매가 (kg당 판매제안 단가 - 원) *</label>
+        <input type="number" id="t-price" placeholder="예: 12000" min="1" required />
+      </div>
+
+      <!-- 수취 파트너 선택 -->
+      <div class="form-group">
+        <label>수취 파트너 지정 (도매/소매업자)</label>
+        <select id="t-receiver">
+          <option value="" selected>-- 지정 안 함 (전체 도/소매업자 공개 매물) --</option>
+        </select>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="btn-submit">거래 등록 요청</button>
+    </form>
+
+    <div class="back-link">
+      <a href="/">← 메인 화면으로 돌아가기</a>
+    </div>
+  </div>
+
+  <script>
+    const receiverSelect = document.getElementById('t-receiver');
+    const form = document.getElementById('form-register-trade');
+    const submitBtn = document.getElementById('btn-submit');
+
+    // ── 유통 파트너 목록 로드 (도매/소매업자) ─────────────────────────
+    async function loadPartners() {
+      try {
+        const res = await fetch('/api/v1/user/partners');
+        const json = await res.json();
+        
+        if (res.ok && json.code === 'SUCCESS') {
+          receiverSelect.innerHTML = '<option value="">-- 지정 안 함 (전체 도/소매업자 공개 매물) --</option>';
+          if (json.data && json.data.length > 0) {
+            json.data.forEach(w => {
+              const opt = document.createElement('option');
+              opt.value = w.userId;
+              const roleText = w.role === 'WHOLESALER' ? '도매' : '소매';
+              opt.textContent = `${w.companyName} (${roleText})`;
+              receiverSelect.appendChild(opt);
+            });
+          }
+        } else {
+          console.warn('파트너 목록 로드 실패, 비지정 등록만 가능합니다.');
+        }
+      } catch {
+        console.error('네트워크 에러로 파트너 목록을 가져오지 못했습니다.');
+      }
+    }
+
+    // 페이지 진입 시 로그인 검증 및 유통 파트너 로드
+    window.addEventListener('DOMContentLoaded', () => {
+      const userStr = localStorage.getItem('user');
+      if (!userStr) {
+        alert('🔒 로그인이 필요한 페이지입니다.');
+        location.href = '/';
+        return;
+      }
+      
+      const user = JSON.parse(userStr);
+      if (user.role !== 'PRODUCER') {
+        alert('🚫 최초 거래 등록은 생산자(어부) 계정만 가능합니다.');
+        location.href = '/';
+        return;
+      }
+      
+      loadPartners();
+    });
+
+    // ── 거래 등록 요청 제출 ───────────────────────
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      const fishCode = document.getElementById('t-fish').value;
+      const qty = parseFloat(document.getElementById('t-qty').value);
+      const sellPrice = parseFloat(document.getElementById('t-price').value);
+      const receiverId = receiverSelect.value;
+
+      if (!fishCode || isNaN(qty) || qty <= 0 || isNaN(sellPrice) || sellPrice <= 0) {
+        alert('모든 필수 입력 값을 올바르게 기입해 주세요.');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = '등록 중...';
+
+      try {
+        const res = await fetch('/api/v1/trade/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fishCode, qty, sellPrice, receiverId })
+        });
+        const json = await res.json();
+
+        if (res.ok && json.code === 'SUCCESS') {
+          alert('✅ 최초 거래 등록 및 전송이 완료되었습니다!');
+          form.reset();
+          location.href = '/';
+        } else {
+          alert(json.message || '거래 등록에 실패했습니다.');
+        }
+      } catch {
+        alert('서버와의 통신 오류가 발생했습니다.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '거래 등록 요청';
+      }
+    });
+  </script>
+</body>
+</html>

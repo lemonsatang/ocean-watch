@@ -30,15 +30,26 @@ Spring Security 자체 인증(BCrypt)을 사용하므로 `password` 컬럼에 BC
 CREATE TYPE user_role AS ENUM ('ADMIN', 'PRODUCER', 'WHOLESALER', 'RETAILER', 'CONSUMER');
 
 CREATE TABLE tb_watch_user (
-    user_id      UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
-    email        VARCHAR(100) NOT NULL UNIQUE,
-    password     VARCHAR(255) NOT NULL,              -- BCrypt 해시값 저장
-    user_name    VARCHAR(50)  NOT NULL,
-    role         user_role    NOT NULL,
-    phone        VARCHAR(20)  NOT NULL,
-    business_no  VARCHAR(20),                        -- 선택 입력 (유통업자/생산자용)
-    created_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
-    updated_at   TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    user_id             UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    email               VARCHAR(100) NOT NULL UNIQUE,
+    password            VARCHAR(255) NOT NULL,              -- BCrypt 해시값 저장
+    user_name           VARCHAR(50)  NOT NULL,              -- 소비자명 또는 유통업자의 상호명(회사명)으로 사용
+    role                user_role    NOT NULL,
+    phone               VARCHAR(20)  NOT NULL,
+    business_no         VARCHAR(20),                        -- 유통업자 필수 / 소비자 제외
+    representative_name VARCHAR(50),                        -- 유통업자 대표자명 (유통업자 필수 / 소비자 제외)
+    business_address    VARCHAR(255),                       -- 유통업자 사업장 주소 (유통업자 필수 / 소비자 제외)
+    created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+
+    -- 유통업자(PRODUCER, WHOLESALER, RETAILER) 가입 시 필수 입력 무결성 검증 제약조건
+    CONSTRAINT chk_distributor_fields CHECK (
+        role IN ('CONSUMER', 'ADMIN') OR (
+            representative_name IS NOT NULL AND 
+            business_address IS NOT NULL AND 
+            business_no IS NOT NULL
+        )
+    )
 );
 ```
 
@@ -63,6 +74,24 @@ CREATE TABLE tb_distribution_trace (
     
     -- 도/소매업자 입력 무결성 검증 (판매가는 항상 0보다 커야 함)
     CONSTRAINT chk_sell_price CHECK (sell_price > 0)
+);
+```
+
+### 2.2.1 실시간 수산물 직배송 및 유통 거래 테이블 (`tb_watch_trade`)
+산지 직배송 및 대시보드 연동을 극대화하기 위해 새롭게 최적화된 PostgreSQL 기반의 초고속 유통 거래 계층 구조 테이블이다.
+
+```sql
+CREATE TABLE tb_watch_trade (
+    trace_id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    parent_trace_id   UUID REFERENCES tb_watch_trade(trace_id) ON DELETE SET NULL,
+    user_id           UUID NOT NULL REFERENCES tb_watch_user(user_id) ON DELETE CASCADE,
+    receiver_id       UUID REFERENCES tb_watch_user(user_id) ON DELETE SET NULL,
+    fish_type         VARCHAR(50) NOT NULL,
+    quantity          INT NOT NULL CHECK (quantity > 0),
+    buy_price         INT NOT NULL DEFAULT 0 CHECK (buy_price >= 0),
+    sell_price        INT NOT NULL CHECK (sell_price > 0),
+    trade_status      VARCHAR(20) NOT NULL DEFAULT 'PENDING' CHECK (trade_status IN ('PENDING', 'APPROVED', 'REJECTED')),
+    created_at        TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
 ```
 

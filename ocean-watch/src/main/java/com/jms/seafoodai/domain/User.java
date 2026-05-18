@@ -13,7 +13,7 @@ import java.util.UUID;
  */
 public class User {
 
-    private UUID userId;
+    private String userId;
 
     @NotBlank @Email
     private String email;
@@ -32,14 +32,16 @@ public class User {
     private String phone;
 
     private String businessNo;     // 선택 입력
+    private String representativeName; // 대표자명 (유통업자용)
+    private String businessAddress;    // 사업장 주소 (유통업자용)
 
     private OffsetDateTime createdAt;
     private OffsetDateTime updatedAt;
 
     // ── Getters & Setters ──────────────────────────────────────────
 
-    public UUID getUserId()                      { return userId; }
-    public void setUserId(UUID userId)            { this.userId = userId; }
+    public String getUserId()                      { return userId; }
+    public void setUserId(String userId)            { this.userId = userId; }
 
     public String getEmail()                     { return email; }
     public void setEmail(String email)           { this.email = email; }
@@ -58,6 +60,12 @@ public class User {
 
     public String getBusinessNo()                { return businessNo; }
     public void setBusinessNo(String businessNo) { this.businessNo = businessNo; }
+
+    public String getRepresentativeName()        { return representativeName; }
+    public void setRepresentativeName(String representativeName) { this.representativeName = representativeName; }
+
+    public String getBusinessAddress()           { return businessAddress; }
+    public void setBusinessAddress(String businessAddress) { this.businessAddress = businessAddress; }
 
     public OffsetDateTime getCreatedAt()                     { return createdAt; }
     public void setCreatedAt(OffsetDateTime createdAt)       { this.createdAt = createdAt; }

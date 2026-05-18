@@ -47,6 +47,7 @@
 ### 2.2 MyBatis 및 SQL 표준
 * **SQL 키워드:** `SELECT`, `FROM`, `WHERE`, `JOIN` 등 SQL 예약어는 반드시 **대문자**로 작성하여 가독성을 높인다.
 * **Mapper 파일(XML):** 쿼리의 ID는 Java Mapper 인터페이스의 메서드명과 완벽히 일치해야 한다.
+* **XML 파일 위치 및 스캔:** 모든 XML Mapper 파일은 `src/main/resources/mapper/` 아래에 위치해야 하며, 스캔 누락 방지를 위해 `application.yml`의 `mybatis.mapper-locations: classpath:mapper/**/*.xml` 설정을 반드시 유지해야 한다.
 * **동적 쿼리:** MyBatis의 `<if>`, `<choose>` 태그를 활용하되, 복잡한 비즈니스 로직을 쿼리 안에 과도하게 넣지 않는다.
 
 ---

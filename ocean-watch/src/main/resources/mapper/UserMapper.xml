@@ -12,9 +12,285 @@
     </select>
 
     <!-- 신규 사용자 등록 -->
-    <insert id="insertUser" parameterType="com.jms.seafoodai.domain.User">
-        INSERT INTO tb_watch_user (email, password, user_name, role, phone, business_no)
-        VALUES (#{email}, #{password}, #{userName}, #{role}::user_role, #{phone}, #{businessNo})
+    <insert id="insertUser" parameterType="map">
+        INSERT INTO tb_watch_user (email, password, user_name, role, phone, business_no, representative_name, business_address)
+        VALUES (#{email}, #{password}, #{userName}, #{role}::user_role, #{phone}, #{businessNo}, #{representativeName}, #{businessAddress})
     </insert>
+
+    <!-- 이메일로 사용자 조회 -->
+    <select id="findByEmail" parameterType="String" resultType="map">
+        SELECT 
+            user_id AS "userId",
+            email AS "email",
+            password AS "password",
+            user_name AS "userName",
+            role AS "role",
+            phone AS "phone",
+            business_no AS "businessNo",
+            representative_name AS "representativeName",
+            business_address AS "businessAddress",
+            created_at AS "createdAt",
+            updated_at AS "updatedAt"
+        FROM tb_watch_user
+        WHERE email = #{email}
+    </select>
+
+    <!-- 특정 역할군 사용자 목록 조회 -->
+    <select id="findUsersByRole" parameterType="String" resultType="map">
+        SELECT 
+            user_id AS "userId",
+            user_name AS "userName",
+            email AS "email",
+            phone AS "phone"
+        FROM tb_watch_user
+        WHERE role = #{role}::user_role
+        ORDER BY user_name ASC
+    </select>
+
+    <!-- 생산자 최초 거래 등록 -->
+    <insert id="insertInitialTrade" parameterType="map">
+        INSERT INTO tb_watch_trade (
+            user_id, 
+            receiver_id,
+            fish_type, 
+            quantity, 
+            buy_price, 
+            sell_price, 
+            trade_status
+        ) VALUES (
+            #{userId}::uuid, 
+            <choose>
+                <when test="receiverId != null and receiverId != ''">
+                    #{receiverId}::uuid,
+                </when>
+                <otherwise>
+                    NULL,
+                </otherwise>
+            </choose>
+            #{fishType}, 
+            #{quantity}::int, 
+            0, 
+            #{sellPrice}::int, 
+            'PENDING'
+        )
+    </insert>
+
+    <!-- 유통 파트너 목록 조회 (도매/소매업자) -->
+    <select id="findPartners" resultType="map">
+        SELECT 
+            user_id AS "userId",
+            user_name AS "companyName",
+            role AS "role"
+        FROM tb_watch_user
+        WHERE role IN ('WHOLESALER'::user_role, 'RETAILER'::user_role)
+        ORDER BY role DESC, user_name ASC
+    </select>
+
+    <!-- 거래 상태 업데이트 -->
+    <update id="updateTradeStatus">
+        UPDATE tb_watch_trade
+        SET trade_status = #{status}
+        WHERE trace_id = #{traceId}::uuid
+    </update>
+
+    <!-- 거래 수량 차감 업데이트 -->
+    <update id="deductTradeQuantity">
+        UPDATE tb_watch_trade
+        SET quantity = quantity - #{deductedQty}::int
+        WHERE trace_id = #{traceId}::uuid
+    </update>
+
+    <!-- 특정 거래 내역 단건 조회 -->
+    <select id="findTradeById" resultType="map">
+        SELECT 
+            trace_id AS "traceId",
+            parent_trace_id AS "parentTraceId",
+            user_id AS "userId",
+            receiver_id AS "receiverId",
+            fish_type AS "fishType",
+            quantity AS "quantity",
+            buy_price AS "buyPrice",
+            sell_price AS "sellPrice",
+            trade_status AS "tradeStatus",
+            created_at AS "createdAt"
+        FROM tb_watch_trade
+        WHERE trace_id = #{traceId}::uuid
+    </select>
+
+    <!-- 자식 거래(새로운 유통 단계) 등록 -->
+    <insert id="insertChildTrade" parameterType="map">
+        INSERT INTO tb_watch_trade (
+            parent_trace_id,
+            user_id, 
+            fish_type, 
+            quantity, 
+            buy_price, 
+            sell_price, 
+            trade_status
+        ) VALUES (
+            #{parentTraceId}::uuid, 
+            #{userId}::uuid, 
+            #{fishType}, 
+            #{quantity}::int, 
+            #{buyPrice}::int, 
+            <choose>
+                <when test="sellPrice != null">
+                    #{sellPrice}::int,
+                </when>
+                <otherwise>
+                    0,
+                </otherwise>
+            </choose>
+            'STOCKED'
+        )
+    </insert>
+
+    <!-- 대기 중인 거래 목록 조회 (보안 필터링 적용) -->
+    <select id="findPendingTrades" resultType="map">
+        SELECT 
+            t.trace_id AS "traceId",
+            t.parent_trace_id AS "parentTraceId",
+            t.user_id AS "userId",
+            u.user_name AS "producerName",
+            t.receiver_id AS "receiverId",
+            t.fish_type AS "fishType",
+            t.quantity AS "quantity",
+            t.buy_price AS "buyPrice",
+            t.sell_price AS "sellPrice",
+            t.trade_status AS "tradeStatus",
+            t.created_at AS "createdAt"
+        FROM tb_watch_trade t
+        LEFT JOIN tb_watch_user u ON t.user_id = u.user_id
+        WHERE t.trade_status = 'PENDING' 
+          AND (t.receiver_id IS NULL OR t.receiver_id = #{currentUserId}::uuid)
+        ORDER BY t.created_at DESC
+    </select>
+
+    <!-- 기준 시세 Upsert -->
+    <insert id="upsertFairPrice" parameterType="map">
+        INSERT INTO tb_watch_ai_fair_price (
+            price_date,
+            fish_type,
+            avg_wholesale_price,
+            avg_retail_price,
+            created_at
+        ) VALUES (
+            #{priceDate}::date,
+            #{fishType},
+            #{avgWholesalePrice}::int,
+            #{avgRetailPrice}::int,
+            CURRENT_TIMESTAMP
+        )
+        ON CONFLICT (price_date, fish_type) DO UPDATE SET
+            avg_wholesale_price = EXCLUDED.avg_wholesale_price,
+            avg_retail_price = EXCLUDED.avg_retail_price,
+            created_at = CURRENT_TIMESTAMP
+    </insert>
+
+    <!-- 특정 어종의 가장 최근 기준 시세 조회 (오늘 또는 과거 최근) -->
+    <select id="findLatestFairPrice" resultType="map">
+        SELECT 
+            avg_wholesale_price AS "avgWholesalePrice",
+            avg_retail_price AS "avgRetailPrice"
+        FROM tb_watch_ai_fair_price
+        WHERE fish_type = #{fishType}
+        ORDER BY price_date DESC
+        LIMIT 1
+    </select>
+
+    <!-- 재고 방출 업데이트 -->
+    <update id="releaseInventory">
+        UPDATE tb_watch_trade
+        SET 
+            sell_price = #{sellPrice}::int,
+            trade_status = 'PENDING',
+            fair_price_status = #{fairPriceStatus},
+            receiver_id = <choose>
+                <when test="receiverId != null and receiverId != ''">
+                    #{receiverId}::uuid
+                </when>
+                <otherwise>
+                    NULL
+                </otherwise>
+            </choose>
+        WHERE trace_id = #{traceId}::uuid
+          AND user_id = #{userId}::uuid
+          AND trade_status = 'STOCKED'
+    </update>
+
+    <!-- fair_price_status 컬럼 추가 자동 DDL 방어 -->
+    <update id="addFairPriceStatusColumnIfNotExists">
+        ALTER TABLE tb_watch_trade ADD COLUMN IF NOT EXISTS fair_price_status VARCHAR(10);
+    </update>
+
+    <!-- 내 창고 재고 목록 조회 -->
+    <select id="findMyInventory" resultType="map">
+        SELECT 
+            trace_id AS "traceId",
+            parent_trace_id AS "parentTraceId",
+            fish_type AS "fishType",
+            quantity AS "quantity",
+            buy_price AS "buyPrice",
+            created_at AS "createdAt"
+        FROM tb_watch_trade
+        WHERE user_id = #{userId}::uuid
+          AND trade_status = 'STOCKED'
+        ORDER BY created_at DESC
+    </select>
+
+    <!-- 유통 이력 역추적 재귀 조회 -->
+    <select id="findTraceTimeline" resultType="map">
+        WITH RECURSIVE TraceLineage AS (
+            -- 기본(Base) 케이스: 주어진 trace_id에 해당하는 거래 노드부터 시작
+            SELECT 
+                t.trace_id,
+                t.parent_trace_id,
+                t.user_id,
+                u.user_name,
+                u.role,
+                t.fish_type,
+                t.quantity,
+                t.sell_price,
+                t.fair_price_status,
+                t.created_at,
+                0 AS level
+            FROM tb_watch_trade t
+            LEFT JOIN tb_watch_user u ON t.user_id = u.user_id
+            WHERE t.trace_id = #{traceId}::uuid
+
+            UNION ALL
+
+            -- 재귀(Recursive) 케이스: 부모 노드를 찾아 위로 거슬러 올라감
+            SELECT 
+                parent.trace_id,
+                parent.parent_trace_id,
+                parent.user_id,
+                u.user_name,
+                u.role,
+                parent.fish_type,
+                parent.quantity,
+                parent.sell_price,
+                parent.fair_price_status,
+                parent.created_at,
+                child.level + 1 AS level
+            FROM tb_watch_trade parent
+            INNER JOIN TraceLineage child ON child.parent_trace_id = parent.trace_id
+            LEFT JOIN tb_watch_user u ON parent.user_id = u.user_id
+        )
+        SELECT 
+            trace_id AS "traceId",
+            parent_trace_id AS "parentTraceId",
+            user_id AS "userId",
+            user_name AS "userName",
+            role AS "role",
+            fish_type AS "fishType",
+            quantity AS "quantity",
+            sell_price AS "sellPrice",
+            fair_price_status AS "fairPriceStatus",
+            created_at AS "createdAt",
+            level
+        FROM TraceLineage
+        ORDER BY level DESC
+    </select>
 
 </mapper>

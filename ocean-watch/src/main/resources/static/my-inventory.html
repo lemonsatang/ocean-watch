@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OceanWatch — 내 창고</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:        #2ECC71;
+      --red:          #E74C3C;
+      --glass-bg:     rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --glass-blur:   blur(25px);
+      --text-main:    #f0f4ff;
+      --text-muted:   rgba(240, 244, 255, 0.6);
+      --accent:       #38d9f5;
+      --accent-dark:  #0e9abf;
+      --amber:        #f39c12;
+    }
+
+    body {
+      font-family: 'Noto Sans KR', sans-serif;
+      background: linear-gradient(135deg, #020b18 0%, #041f3a 40%, #062e55 70%, #073b6e 100%);
+      min-height: 100vh;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60px 20px;
+    }
+
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: var(--glass-blur);
+      -webkit-backdrop-filter: var(--glass-blur);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      width: 100%;
+      max-width: 800px;
+      padding: 40px;
+      box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+    }
+
+    .nav-top {
+      text-align: right;
+      margin-bottom: 5px;
+    }
+    
+    .btn-home {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 14px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.25s;
+    }
+    
+    .btn-home:hover {
+      background: rgba(56, 217, 245, 0.15);
+      color: var(--accent);
+      border-color: rgba(56, 217, 245, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .header-logo {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .header-logo span { color: var(--text-main); }
+    
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .inventory-list {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .inventory-item {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: transform 0.2s, background 0.2s;
+    }
+
+    .inventory-item:hover {
+      transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      padding-bottom: 10px;
+    }
+
+    .item-title {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .item-date {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.95rem;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .info-label {
+      color: var(--text-muted);
+      width: 35%;
+    }
+
+    .info-value {
+      width: 65%;
+      text-align: right;
+      font-weight: 500;
+      color: var(--text-main);
+    }
+
+    .ai-bot-msg {
+      background: rgba(46, 204, 113, 0.1);
+      border: 1px solid rgba(46, 204, 113, 0.3);
+      border-radius: 8px;
+      padding: 12px;
+      margin-top: 15px;
+      margin-bottom: 15px;
+      color: var(--green);
+      font-size: 0.9rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .ai-bot-msg.warning {
+      background: rgba(243, 156, 18, 0.1);
+      border: 1px solid rgba(243, 156, 18, 0.3);
+      color: var(--amber);
+    }
+
+    .btn-action {
+      width: 100%;
+      background: var(--accent);
+      color: #020b18;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .btn-action:hover {
+      background: #4ae0fa;
+      transform: translateY(-1px);
+    }
+
+    .empty-msg {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .spinner {
+      border: 3px solid rgba(255,255,255,0.1);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border-left-color: var(--accent);
+      animation: spin 1s linear infinite;
+      margin: 40px auto;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 600px) {
+      body { padding: 30px 15px; }
+      .glass-card { padding: 25px 20px; border-radius: 18px; }
+      .nav-top { text-align: center; margin-bottom: 10px; }
+      .btn-home { padding: 8px 20px; font-size: 0.9rem; }
+      .info-label { width: 40%; }
+      .info-value { width: 60%; }
+      .ai-bot-msg { font-size: 0.85rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="glass-card">
+    <div class="nav-top">
+      <a href="/" class="btn-home">← 메인 화면으로 돌아가기</a>
+    </div>
+
+    <div class="header-logo">Ocean<span>Watch</span></div>
+    <h2>내 창고 (재고 방출)</h2>
+    <p class="subtitle">보유 중인 재고를 확인하고 AI 추천가에 맞춰 시장에 방출하세요.</p>
+
+    <div id="loading-spinner" class="spinner"></div>
+    <div id="inventory-list" class="inventory-list" style="display: none;"></div>
+  </div>
+
+  <script>
+    const spinner = document.getElementById('loading-spinner');
+    const inventoryList = document.getElementById('inventory-list');
+
+    window.addEventListener('DOMContentLoaded', () => {
+      fetchInventory();
+    });
+
+    async function fetchInventory() {
+      try {
+        const res = await fetch('/api/v1/inventory/list');
+        const json = await res.json();
+        spinner.style.display = 'none';
+
+        if (res.ok && json.code === 'SUCCESS') {
+          renderInventory(json.data || []);
+        } else {
+          showEmpty(json.message || '재고 목록을 불러올 수 없습니다.');
+        }
+      } catch (e) {
+        spinner.style.display = 'none';
+        showEmpty('서버 통신 중 오류가 발생했습니다.');
+      }
+    }
+
+    function renderInventory(list) {
+      inventoryList.innerHTML = '';
+      if (list.length === 0) {
+        showEmpty('창고에 보관 중인 재고가 없습니다.');
+        return;
+      }
+
+      const now = new Date();
+      
+      list.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'inventory-item';
+
+        const dateObj = new Date(item.createdAt);
+        const dateStr = dateObj.toLocaleString('ko-KR', {
+          year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit'
+        });
+
+        // 체류 일수 계산
+        const diffTime = Math.abs(now - dateObj);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        let agingText = diffDays === 0 ? '오늘 입고' : `입고 후 ${diffDays}일 경과`;
+
+        const qty = item.quantity ? item.quantity.toLocaleString() : '0';
+        
+        let aiMsgHtml = '';
+        const aiPrice = item.aiRecommendedPrice;
+        
+        if (aiPrice && aiPrice > 0) {
+          const isWarning = diffDays > 2; // 감가 적용된 경우 경고 스타일
+          const msgClass = isWarning ? 'ai-bot-msg warning' : 'ai-bot-msg';
+          const icon = isWarning ? '⚠️' : '🤖';
+          aiMsgHtml = `
+            <div class="${msgClass}">
+              ${icon} AI 추천 방출가: ${aiPrice.toLocaleString()}원 (체류 ${agingText} 및 요일 수요 분석 적용됨)
+            </div>
+          `;
+        } else {
+          aiMsgHtml = `
+            <div class="ai-bot-msg warning">
+              ⚠️ 해당 어종의 시세 데이터가 부족하여 AI 추천가를 제공할 수 없습니다.
+            </div>
+          `;
+        }
+
+        div.innerHTML = `
+          <div class="item-header">
+            <div class="item-title">${item.fishType}</div>
+            <div class="item-date">입고일: ${dateStr}</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">재고 수량</div>
+            <div class="info-value">${qty} kg</div>
+          </div>
+          <div class="info-row">
+            <div class="info-label">입고 단가(매입가)</div>
+            <div class="info-value">${item.buyPrice ? item.buyPrice.toLocaleString() + ' 원' : '-'}</div>
+          </div>
+          ${aiMsgHtml}
+          <button class="btn-action" onclick="releaseItem('${item.traceId}', '${item.fishType}', ${aiPrice})">시장에 방출하기</button>
+        `;
+        
+        inventoryList.appendChild(div);
+      });
+      inventoryList.style.display = 'flex';
+    }
+
+    function showEmpty(msg) {
+      inventoryList.innerHTML = `<div class="empty-msg">${msg}</div>`;
+      inventoryList.style.display = 'block';
+    }
+
+    async function releaseItem(traceId, fishType, recommendedPrice) {
+      const priceGuide = recommendedPrice > 0 ? recommendedPrice.toLocaleString() : '직접 책정';
+      const input = prompt(`[${fishType}] 시장에 방출할 단가(원)를 입력하세요.\n(AI 추천가: ${priceGuide}원)`, recommendedPrice > 0 ? recommendedPrice : '');
+      
+      if (input === null) return;
+      const sellPrice = parseInt(input.replace(/,/g, ''), 10);
+      
+      if (isNaN(sellPrice) || sellPrice <= 0) {
+        alert('올바른 가격을 입력해주세요.');
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/v1/inventory/release', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            traceId: traceId,
+            sellPrice: sellPrice,
+            // 공개 시장 방출이므로 receiverId는 넘기지 않음
+          })
+        });
+        const json = await res.json();
+        
+        if (res.ok && json.code === 'SUCCESS') {
+          let badge = '';
+          if (json.fairPriceStatus === 'Y') badge = '🟢 적정 공정가 통과';
+          else if (json.fairPriceStatus === 'W') badge = '🟡 시세 높음 주의';
+          else if (json.fairPriceStatus === 'N') badge = '🔴 비정상 폭리 경고';
+          
+          alert(`방출 성공!\nAI 신호등 판정: ${badge}`);
+          fetchInventory(); // 새로고침
+        } else {
+          alert(json.message || '방출 처리 실패');
+        }
+      } catch (err) {
+        alert('서버 오류가 발생했습니다.');
+      }
+    }
+  </script>
+</body>
+</html>
