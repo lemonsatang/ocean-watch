@@ -1,4 +1,4 @@
-<div align="center">
+<img width="1844" height="851" alt="image" src="https://github.com/user-attachments/assets/af02f57a-e868-4857-a235-54bcf31e683b" /><div align="center">
   <img src="https://img.shields.io/badge/Ocean-Watch-0e9abf?style=for-the-badge&logo=anchor&logoColor=white" alt="OceanWatch Logo" />
   <h1>🌊 OceanWatch (스마트 수산물 안심 유통 플랫폼)</h1>
   <p>블록체인 스타일 데이터 체인 역추적 및 자바 내장형 AI 기반 수산물 공정가격 유도 시스템</p>
@@ -84,7 +84,23 @@
 > **Map 기반 아키텍처의 철학**  
 > OceanWatch는 별도의 Entity, VO, DTO 클래스를 일절 생성하지 않습니다. 데이터베이스의 결과셋은 곧바로 MyBatis를 거쳐 `java.util.Map`으로 변환되며, 비즈니스 로직과 UI까지 하나의 유연한 맵(Map) 구조로 일관성 있게 흐르도록 극도의 미니멀리즘 아키텍처를 채택하고 있습니다.
 >
-> ## 화면ui
-> [메인]
-> <img width="1844" height="851" alt="image" src="https://github.com/user-attachments/assets/14f28561-5404-4140-958a-e99c4745347a" />
+## 화면ui
+[메인]
+<img width="1844" height="851" alt="image" src="https://github.com/user-attachments/assets/7f2ce0c2-c156-44e5-ac0e-85cbaa44717e" />
+
+[로그인]
+<img width="1848" height="887" alt="image" src="https://github.com/user-attachments/assets/184defc1-bd34-4eae-9b27-4b750c45c989" />
+
+[회원가입]
+<img width="1863" height="882" alt="image" src="https://github.com/user-attachments/assets/922b7cde-e3ef-49f9-bb9c-873f7fab027c" />
+
+[수산물 유통 이력 역추적]
+<img width="1842" height="884" alt="image" src="https://github.com/user-attachments/assets/13588f59-6683-4e4f-b5a4-0242a92c19c5" />
+
+[내 창고]
+<img width="1840" height="881" alt="image" src="https://github.com/user-attachments/assets/5ae2264c-e1bb-4b44-a16e-e5dbc0d7b1a7" />
+
+[거래 승인 현황]
+<img width="1859" height="885" alt="image" src="https://github.com/user-attachments/assets/7ddacf2f-ff1e-4166-a28a-102cc450d947" />
+
 
